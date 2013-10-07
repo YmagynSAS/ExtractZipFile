@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android"
+	id="org.phonegap.googleanalytics" version="0.0.1">
+
+	<js-module src="www/ZipPlugin.js" name="ExtractZipFilePlugin">
+        <clobbers target="ExtractZipFilePlugin" />
+    </js-module>
+
+	<!-- ios -->
+	<platform name="ios">
+
+		<config-file target="config.xml" parent="/*">
+			<feature name="ExtractZipFilePlugin">
+				<param name="ios-package" value="ExtractZipFilePlugin"/>
+			</feature>
+			<access origin="*" />
+		</config-file>
+
+		<source-file src="src/ios/ExtractZipFilePlugin.m" />
+		<header-file src="src/ios/ExtractZipFilePlugin.h" />
+
+		<source-file src="src/ios/SSZipArchive/SSZipArchive.m" />
+		<header-file src="src/ios/SSZipArchive/SSZipArchive.h" />
+
+		<!-- Minizip lib -->
+		<source-file src="src/ios/SSZipArchive/minizip/ioapi.c" />
+		<source-file src="src/ios/SSZipArchive/minizip/mztools.c" />
+		<source-file src="src/ios/SSZipArchive/minizip/unzip.c" />
+		<source-file src="src/ios/SSZipArchive/minizip/zip.c" />
+
+		<header-file src="src/ios/SSZipArchive/minizip/crypt.h" />
+		<header-file src="src/ios/SSZipArchive/minizip/ioapi.h" />
+		<header-file src="src/ios/SSZipArchive/minizip/mztools.h" />
+		<header-file src="src/ios/SSZipArchive/minizip/unzip.h" />
+		<header-file src="src/ios/SSZipArchive/minizip/zip.h" />
+
+		<framework src="libz.dylib" />
+
+	</platform>
+</plugin>
