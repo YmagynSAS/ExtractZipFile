@@ -27,7 +27,7 @@ public class ExtractZipFilePlugin extends CordovaPlugin {
 		PluginResult pr;
 		try {
 			String filename = args.getString(0);
-			File file = new File(filename);
+			File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+'/'+filename);
 			String[] dirToSplit=filename.split(File.separator);
 			String dirToInsert=Environment.getExternalStorageDirectory().getAbsolutePath() + '/' + args.getString(1);
 			File dir = new File(dirToInsert);
