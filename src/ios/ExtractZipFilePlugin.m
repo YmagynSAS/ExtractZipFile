@@ -19,8 +19,8 @@
     NSString *file = [command argumentAtIndex:0];
     NSString *destination = [command argumentAtIndex:1];
 
-    if([SSZipArchive unzipFileAtPath:file toDestination:destination delegate:nil]) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:destination];
+    if([SSZipArchive unzipFileAtPath:file toDestination:destination delegate:nil result:pluginResult ctx:self callback:command]) {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[NSString stringWithFormat:@"{\"isUnzipping\": \"false\", \"percentage\": \"100\", \"path\": \"%@\"}", destination]];
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Could not extract archive"];
     }

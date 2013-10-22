@@ -27,22 +27,22 @@
 
 #pragma mark - Unzipping
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination {
-	return [self unzipFileAtPath:path toDestination:destination delegate:nil];
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination result:(CDVPluginResult *)result ctx:(CDVPlugin *)context callback:(CDVInvokedUrlCommand*)command {
+	return [self unzipFileAtPath:path toDestination:destination delegate:nil result:result ctx:context callback:command];
 }
 
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error {
-	return [self unzipFileAtPath:path toDestination:destination overwrite:overwrite password:password error:error delegate:nil];
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error result:(CDVPluginResult *)result ctx:(CDVPlugin *)context callback:(CDVInvokedUrlCommand*)command {
+	return [self unzipFileAtPath:path toDestination:destination overwrite:overwrite password:password error:error delegate:nil result:result ctx:context callback:command];
 }
 
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<SSZipArchiveDelegate>)delegate {
-	return [self unzipFileAtPath:path toDestination:destination overwrite:YES password:nil error:nil delegate:delegate];
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination delegate:(id<SSZipArchiveDelegate>)delegate result:(CDVPluginResult *)result ctx:(CDVPlugin *)context callback:(CDVInvokedUrlCommand*)command {
+	return [self unzipFileAtPath:path toDestination:destination overwrite:YES password:nil error:nil delegate:delegate result:result ctx:context callback:command];
 }
 
 
-+ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<SSZipArchiveDelegate>)delegate {
++ (BOOL)unzipFileAtPath:(NSString *)path toDestination:(NSString *)destination overwrite:(BOOL)overwrite password:(NSString *)password error:(NSError **)error delegate:(id<SSZipArchiveDelegate>)delegate result:(CDVPluginResult *)result ctx:(CDVPlugin *)context callback:(CDVInvokedUrlCommand*)command {
 	// Begin opening
 	zipFile zip = unzOpen((const char*)[path UTF8String]);	
 	if (zip == NULL) {
@@ -146,10 +146,24 @@
 		}
 		
 		FILE *fp = fopen((const char*)[fullPath UTF8String], "wb");
+        int currentFileUnzip = currentFileNumber + 1;
+        int actualPercent = 0;
+
 		while (fp) {
 			int readBytes = unzReadCurrentFile(zip, buffer, 4096);
 
 			if (readBytes > 0) {
+                if (currentFileNumber + 1 == currentFileUnzip) {
+                    int percent = (int) (0.5 + ((double)currentFileNumber / (double)(NSInteger)globalInfo.number_entry) * 100);
+                    NSString *json_string = [NSString stringWithFormat:@"{\"isUnzipping\": \"true\", \"percentage\": \"%d\", \"path\": \"%@\"}", percent, destination];
+
+                    if (percent > actualPercent) {
+                        actualPercent = percent;
+                        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:json_string];
+                        [result setKeepCallbackAsBool:YES];
+                        [context.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+                    }
+                }
 				fwrite(buffer, readBytes, 1, fp );
 			} else {
 				break;

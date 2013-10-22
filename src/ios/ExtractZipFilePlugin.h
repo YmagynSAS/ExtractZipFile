@@ -15,6 +15,6 @@
 
 @property (nonatomic, copy) NSString* callbackID;
 
-- (void)extract:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options;
+- (void)extract:(CDVInvokedUrlCommand*)command;
 
 @end
