@@ -15,9 +15,14 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import android.R;
+import android.R.integer;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 public class ExtractZipFilePlugin extends CordovaPlugin {
 
@@ -31,11 +36,10 @@ public class ExtractZipFilePlugin extends CordovaPlugin {
 			String[] dirToSplit=filename.split(File.separator);
 			String dirToInsert=Environment.getExternalStorageDirectory().getAbsolutePath() + '/' + args.getString(1);
 			File dir = new File(dirToInsert);
-		    if (!dir.exists()) {
-		        dir.mkdirs();
-		    }
-		    dirToInsert = dir.getAbsolutePath()+'/';
-		    boolean t = dir.exists();
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			dirToInsert = dir.getAbsolutePath()+'/';
 			BufferedOutputStream dest = null;
 			BufferedInputStream is = null;
 			ZipEntry entry;
@@ -43,6 +47,17 @@ public class ExtractZipFilePlugin extends CordovaPlugin {
 			try {
 				zipfile = new ZipFile(file);
 				Enumeration e = zipfile.entries();
+
+				final RelativeLayout relativeLayout = new RelativeLayout(this.cordova.getActivity());
+
+				ProgressBar pb = new ProgressBar(this.cordova.getActivity(), null, android.R.attr.progressBarStyleHorizontal);
+				pb.setId(500);
+				relativeLayout.addView(pb);
+				int per = 0;
+				pb.setProgress(per);
+				pb.setMax(zipfile.size());
+				
+
 				while (e.hasMoreElements()) 
 				{
 					entry = (ZipEntry) e.nextElement();
@@ -66,11 +81,34 @@ public class ExtractZipFilePlugin extends CordovaPlugin {
 						dest.flush();
 						dest.close();
 						is.close();
+						per++;
+						float percentage = (float) (((float)per / zipfile.size()) * 100.00);
+						JSONObject response = new JSONObject();
+						response.put("isUnzipping", true);
+						response.put("percentage", percentage);
+						response.put("path", "");
+						pr = new PluginResult(PluginResult.Status.OK, response);
+						pr.setKeepCallback(true);
+						callbackContext.sendPluginResult(pr);
+
 					}
 				}
-			pr = new PluginResult(PluginResult.Status.OK);
-			callbackContext.sendPluginResult(pr);
-			
+
+				JSONObject response = new JSONObject();
+				response.put("isUnzipping", false);
+				response.put("percentage", 100);
+				response.put("path", "file://"+dirToInsert);
+				final PluginResult pluginresult = new PluginResult(PluginResult.Status.OK, response);
+				pluginresult.setKeepCallback(false);
+				//callbackContext.sendPluginResult(pluginresult);
+				final CallbackContext cb = callbackContext;
+				this.cordova.getThreadPool().execute(
+						new Runnable() {
+				            public void run() {
+				            	cb.sendPluginResult(pluginresult);
+				            }
+				        });
+
 			} catch (ZipException e1) {
 				// TODO Auto-generated catch block
 				pr = new PluginResult(PluginResult.Status.MALFORMED_URL_EXCEPTION);
@@ -81,7 +119,7 @@ public class ExtractZipFilePlugin extends CordovaPlugin {
 				pr = new PluginResult(PluginResult.Status.IO_EXCEPTION);
 				return false;
 			}
-			
+
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			pr = new PluginResult(PluginResult.Status.JSON_EXCEPTION);
@@ -89,6 +127,6 @@ public class ExtractZipFilePlugin extends CordovaPlugin {
 			return false;
 		}
 		return true;
-		
+
 	}
 }
